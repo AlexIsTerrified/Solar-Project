@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;500&family=Open+Sans&family=Roboto&display=swap');
+
+body{margin:0;padding:0;background-color: #222;font-family: 'Inter', sans-serif;width:100vw;height:100%;overflow-x:hidden}
+
+.container{width:100%;height:100%;display:flex;flex-direction:column}
+.main{display:flex;justify-content:Center;width:100%;flex:1;padding:24px 24px;box-sizing:border-box;}
+
+.main .visual-nav{position:Sticky;top:0;display:none}
+.main .visual-nav .MuiTab-root{color:#ccc}
+.main .visual-nav .Mui-selected{color:#1976d2}
+.main .visual{flex:1;border-radius:15px;position:sticky;top:24px;height:calc(100vh - 24px);display:flex;flex-direction:column;
+align-items:center;overflow:hidden}
+.main .visual .animate{height:50%;width:100%;margin-bottom:12px;border-radius:15px;box-shadow:2px 2px 11px #0004;overflow:hidden;background:#222;color:white}
+.main .visual .animate .ani-angle{font-size:12px;font-weight:200}
+.main .visual .animate .info{position:absolute;top:0px;padding:6px;height:52px;box-sizing:border-box;display:flex;pointer-events:none;
+align-items:Center}
+.main .visual .animate .info img{transform:rotateX(45deg);height:40px}
+.main .visual .animate .info span{padding-left:8px;font-size:11px}
+
+.main .visual .chart{height:50%;width:100%;box-sizing:border-box;box-shadow:2px 2px 11px #0004;background:#f7f7f7;border-radius:15px;padding:12px;}
+
+.main .form{flex:1;border-radius:15px;margin-left:12px;display:flex;flex-direction:column;background:#f7f7f7;border-radius:15px;padding:12px;
+box-sizing:border-box;box-shadow:2px 2px 11px #0004;overflow-x:hidden;}
+.main .form .slider{display:flex;width:300%;overflow-x:hidden;transition:.5s}
+.main .form .s0{transform: translateX(12px);}
+.main .form .s1{transform: translateX(calc(-100% / 3));}
+.main .form .s2{transform: translateX(calc(-100% / 1.5 - 12px));}
+.main .form .info{display:flex;flex-direction:column;overflow-x:hidden;margin:0 12px;width:100%;height:fit-content}
+.main .form .info:first-child{margin:0 12px 0 0}
+.main .form .info:last-child{margin:0 0 0 12px}
+.main .form .section{box-sizing:border-box;padding:12px 0;}
+.main .form .info b{padding:12px 0;text-align:Center}
+.leaflet-container{height:300px;overflow:hidden;z-index:1 !important;border-radius:15px}
+.main .form .section .pointer{width:100%;height:100%;display:flex;flex-direction:column;pointer-events:none;justify-content:Center;align-items:center;
+	position:absolute;z-index:2;}
+.leaflet-container .pointer:before{width:25px;height:41px;content:"";background:url('./images/marker-icon.png') no-repeat;opacity:.4;margin-bottom: 41px;}
+.leaflet-bottom,.leaflet-top,.leaflet-pane{z-index:1 !important}
+.main .form .section .panel-size{width:50%;min-width:150px;box-sizing:border-box}
+.main .form .section .panel-size:first-child{padding-right:6px}
+.main .form .section .panel-size:last-child{padding-right:6px}
+.main .form #size-sim{padding:0 20px;height:400px;width:400px}
+.main .form .section #size-panel{display:grid;grid-template-columns:30px 1fr;grid-auto-rows:1fr 30px;
+grid-template-areas: "length content" "width width";}
+.main .form .section #size-panel #length{grid-area:length;display:flex;align-items:center;justify-content:center;transform: rotateZ(90deg);}
+.main .form .section #size-panel #panel{grid-area:content;background-image:linear-gradient(90deg, #555 2px, #222 2px,#222 10px);
+background-size:30px;background-position: center; }
+.main .form .section #size-panel #width{grid-area:width;display:flex;justify-content:center;align-items:center}
+.main .form .info .placing-buttons{width:100%;height:100px;display:flex;flex-direction:row;justify-content:center;align-items:Center;margin: 15px 0 30px 0;}
+.main .form  .info .placing-buttons .placing-button{flex:1;height:100px;background:#222;border:none;margin:10px;display:flex;color:#ccc;
+	justify-content:Center;overflow:hidden;border-radius:3px;transition:.3s;box-shadow:2px 2px 11px #0004;cursor:pointer}
+.main .form  .info .placing-buttons .placing-button:hover{transform:scale(1.05)}
+.main .form  .info .placing-buttons .placing-button p{position:absolute;align-self:center;display:flex;padding:10px;margin:0}
+.main .form  .info .placing-buttons .placing-button:nth-child(1)::before{width:100px;height:120px;background:linear-gradient(0deg, #f00, #800);content:"";
+	display:flex;transform: rotateX(65deg) rotateZ(15deg);box-shadow: 0px 20px 10px #000;}
+.main .form  .info .placing-buttons .placing-button:nth-child(2)::before{width:100px;height:120px;background:linear-gradient(0deg, #f00, #800);content:"";
+	display:flex;transform: rotateX(75deg) rotateZ(30deg) rotateY(30deg);box-shadow: 20px 20px 10px #000;}
+
+@media only screen and (max-width: 680px){
+	.main{flex-direction:column;padding:0;width:100vw;}
+	
+	.main .visual-nav{display:block;}
+	
+	.main .visual{flex-direction:row;justify-content:Center;align-items:unset;width:200%;height:70vh;overflow-x:hidden;border-radius:0px;top:52px;transition:.3s}
+	.main .s1{transform:translateX(-50%)}
+	.main .visual .animate{width:100%;height:100%;overflow-x:hidden;border-radius:0px;margin-bottom:0}
+	.main .visual .chart{width:100% !important;overflow-x:hidden}	
+	
+	.main .form{background:#f7f7f7;z-index:3;margin:0}
+	
+	
+
+}
