@@ -197,6 +197,7 @@ export default function Aligner(){
 				<div className="info">
 					<b>First We Need Your Latitude</b>
 							<div className="section">
+							<button onClick={()=>{console.log(sun_position(2022,9,7,0,56,8,39.833,-98.583))}}></button>
 							<FormControl sx={{ width: '100%' }}>
 								<FormHelperText>latitude: {position}</FormHelperText>
 								<Button variant="contained"  onClick={onClick}>Get Location</Button>

@@ -10,6 +10,7 @@ export function calc_time(year,month,day,hour=12,minute=0,sec=0){
 	if(leapdays)day = day + 1
 	
 	hour = hour + (minute / 60.0) + (sec / 3600.0)
+	
 	const delta = year - 1949
 	const leap = Math.trunc(delta / 4)
 	
@@ -71,12 +72,11 @@ export function sun_position(year=2022, month=12, day=22, hour=12, minute=0, sec
 	
 	el = el / deg2rad
     az = az / deg2rad
-    lat = lat / deg2rad
 
     if(ha > 0) az = az + 180; else az = 540 - az;
     az = az % 360
 	
-	return {azimuth:az,elevation:el,declination:(dec/Math.PI)*180}
+	return {azimuth:az,elevation:el,declination:(dec/Math.PI)*180,obl:oblqec,ec:eclong,ha:ha}
 }
 
 export function solar_declination(year=2022, month=12, day=22, hour=12, minute=0, sec=0){
