@@ -76,7 +76,9 @@ export function sun_position(year=2022, month=12, day=22, hour=12, minute=0, sec
     if(ha > 0) az = az + 180; else az = 540 - az;
     az = az % 360
 	
-	return {azimuth:az,elevation:el,declination:(dec/Math.PI)*180,obl:oblqec,ec:eclong,ha:ha}
+	var HA = (Math.acos(Math.cos(deg2rad*90.833)/(Math.cos(lat)*Math.cos(dec))-Math.tan(lat) * Math.tan(dec)))/deg2rad;
+	
+	return {azimuth:az,elevation:el,declination:(dec/Math.PI)*180,obl:oblqec,ec:eclong,ha:ha,HA:HA}
 }
 
 export function solar_declination(year=2022, month=12, day=22, hour=12, minute=0, sec=0){
