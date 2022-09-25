@@ -1,6 +1,6 @@
 {
-  "short_name": "Solar Aligner App",
-  "name": "Use this app to help align your solar panels and get a better understanding of how our solar orbit works.",
+  "short_name": "Solar Position Calculator and Visualizer",
+  "name": "Solar Position Calculator and Solar Panel Aligner.",
   "icons": [
     {
       "src": "vercel.svg",

@@ -22,6 +22,42 @@ function limit_minutes(minutes)
     return limited;
 }
 
+
+function limit_degrees180pm( degrees){
+    var limited;
+
+    degrees /= 360.0;
+    limited = 360.0*(degrees-Math.floor(degrees));
+    if      (limited < -180.0) limited += 360.0;
+    else if (limited >  180.0) limited -= 360.0;
+
+    return limited;
+}
+
+function limit_degrees180( degrees){
+    var limited;
+
+    degrees /= 180.0;
+    limited = 180.0*(degrees-Math.floor(degrees));
+    if (limited < 0) limited += 180.0;
+
+    return limited;
+}
+
+function limit_zero2one(value){
+    var limited;
+
+    limited = value - Math.floor(value);
+    if (limited < 0) limited += 1.0;
+
+    return limited;
+}
+
+function dayfrac_to_local_hr(dayfrac,timezone)
+{
+    return 24.0*limit_zero2one(dayfrac + timezone/24.0);
+}
+
 function getJD(year,month,day,hour,minute,sec){
 	var day_decimal = day + (hour + (minute + (sec)/60.0)/60.0)/24.0;
 	
@@ -49,34 +85,35 @@ function getJME(jc){
 }
 
 function calcDateFromJD(jd){
-		var z = Math.floor(jd + 0.5);
-		var f = (jd + 0.5) - z;
-
-		if (z < 2299161) {
-			var A = z;
-		} else {
-			var alpha = Math.floor((z - 1867216.25)/36524.25);
-			var A = z + 1 + alpha - Math.floor(alpha/4);
-		}
-
-		var B = A + 1524;
-		var C = Math.floor((B - 122.1)/365.25);
-		var D = Math.floor(365.25 * C);
-		var E = Math.floor((B - D)/30.6001);
-
-		var day = B - D - Math.floor(30.6001 * E) + f;
-		var month = (E < 14) ? E - 1 : E - 13;
-		var year = (month > 2) ? C - 4716 : C - 4715;
-		var hour = (day - Math.floor(day))*24
-		day = Math.floor(day)
-		var minutes = (hour - Math.floor(hour))*60
-		hour = Math.floor(hour)
-		var seconds = Math.floor((minutes - Math.floor(minutes))*60)
-		minutes = Math.floor(minutes)
-
-		// alert ("date: " + day + "-" + monthList[month-1].name + "-" + year);
-		return (day + "-" + month + "-" + year+" : "+hour+":"+minutes+":"+seconds);
+	var z = Math.floor(jd + 0.5);
+	var f = (jd + 0.5) - z;
+	
+	var A
+	if (z < 2299161) {
+		A = z;
+	} else {
+		var alpha = Math.floor((z - 1867216.25)/36524.25);
+		A = z + 1 + alpha - Math.floor(alpha/4);
 	}
+
+	var B = A + 1524;
+	var C = Math.floor((B - 122.1)/365.25);
+	var D = Math.floor(365.25 * C);
+	var E = Math.floor((B - D)/30.6001);
+
+	var day = B - D - Math.floor(30.6001 * E) + f;
+	var month = (E < 14) ? E - 1 : E - 13;
+	var year = (month > 2) ? C - 4716 : C - 4715;
+	var hour = (day - Math.floor(day))*24
+	day = Math.floor(day)
+	var minutes = (hour - Math.floor(hour))*60
+	hour = Math.floor(hour)
+	var seconds = Math.floor((minutes - Math.floor(minutes))*60)
+	minutes = Math.floor(minutes)
+
+	// alert ("date: " + day + "-" + monthList[month-1].name + "-" + year);
+	return (day + "-" + month + "-" + year+" : "+hour+":"+minutes+":"+seconds);
+}
 
 function earth_periodic_term_summation(terms,jme){
     var sum=0;
@@ -321,6 +358,60 @@ function eot( m, alpha, del_psi, epsilon){
     return limit_minutes(4.0*(m - 0.0057183 - alpha + del_psi*Math.cos(deg2rad*epsilon)));
 }
 
+function approx_sun_transit_time(alpha_zero,longitude, nu)
+{
+    return (alpha_zero - longitude - nu) / 360.0;
+}
+
+function sun_hour_angle_at_rise_set(latitude,delta_zero,h0_prime)
+{
+    var h0             = -99999;
+    var latitude_rad   = deg2rad*latitude;
+    var delta_zero_rad = deg2rad*delta_zero;
+    var argument       = (Math.sin(deg2rad*h0_prime) - Math.sin(latitude_rad)*Math.sin(delta_zero_rad)) /
+                                                     (Math.cos(latitude_rad)*Math.cos(delta_zero_rad));
+
+    if (Math.abs(argument) <= 1) h0 = limit_degrees180(rad2deg*Math.acos(argument));
+    return h0;
+}
+
+function approx_sun_rise_and_set(m,h0){
+	var m_rts = []
+    var h0_dfrac = h0/360.0;
+
+    m_rts[1]    = limit_zero2one(m - h0_dfrac);
+    m_rts[2]     = limit_zero2one(m + h0_dfrac);
+    m_rts[0] = limit_zero2one(m);
+	return m_rts
+}
+
+function rts_alpha_delta_prime(ad, n)
+{
+    var a = ad[1] - ad[2];
+    var b = ad[0] - ad[1];
+
+    if (Math.abs(a) >= 2.0) a = limit_zero2one(a);
+    if (Math.abs(b) >= 2.0) b = limit_zero2one(b);
+
+    return ad[1] + n * (a + b + (b-a)*n)/2.0;
+}
+
+function rts_sun_altitude(latitude,delta_prime, h_prime)
+{
+    var latitude_rad    = deg2rad*latitude;
+    var delta_prime_rad = deg2rad*delta_prime;
+
+    return rad2deg*Math.asin(Math.sin(latitude_rad)*Math.sin(delta_prime_rad) +
+                        Math.cos(latitude_rad)*Math.cos(delta_prime_rad)*Math.cos(deg2rad*h_prime));
+}
+
+function sun_rise_and_set(m_rts,h_rts,delta_prime,latitude,h_prime,h0_prime,sun)
+{
+    return m_rts[sun] + (h_rts[sun] - h0_prime) /
+          (360.0*Math.cos(deg2rad*delta_prime[sun])*Math.cos(deg2rad*latitude)*Math.sin(deg2rad*h_prime[sun]));
+}
+
+
 
 export function getResults(lat,lon,year,month,day,hour,minute,sec){
 	var jd = getJD(year,month,day,hour,minute,sec)
@@ -359,6 +450,172 @@ export function getResults(lat,lon,year,month,day,hour,minute,sec){
 	return {el: el, az: az,dec:delta_dec,date:calcDateFromJD(jd),eot:eqtime}
 }
 
+function calcWithJD(jd){
+    var x= []
+	var spa = {}
+	spa.jd = jd
+    spa.jc = getJC(spa.jd);
+
+    spa.jde = spa.jd;
+    spa.jce = spa.jc;
+    spa.jme = getJME(spa.jce);
+
+    spa.l = earth_heliocentric_longitude(spa.jme);
+    spa.b = earth_heliocentric_latitude(spa.jme);
+    spa.r = earth_radius_vector(spa.jme);
+
+    spa.theta = geocentric_longitude(spa.l);
+    spa.beta  = geocentric_latitude(spa.b);
+
+    x[0] = spa.x0 = mean_elongation_moon_sun(spa.jce);
+    x[1] = spa.x1 = mean_anomaly_sun(spa.jce);
+    x[2] = spa.x2 = mean_anomaly_moon(spa.jce);
+    x[3] = spa.x3 = argument_latitude_moon(spa.jce);
+    x[4] = spa.x4 = ascending_longitude_moon(spa.jce);
+
+    spa.del_psi = nutation_longitude_and_obliquity(spa.jce,x).lon
+	spa.del_epsilon = nutation_longitude_and_obliquity(spa.jce,x).obl
+
+    spa.epsilon0 = ecliptic_mean_obliquity(spa.jme);
+    spa.epsilon  = ecliptic_true_obliquity(spa.del_epsilon, spa.epsilon0);
+
+    spa.del_tau   = aberration_correction(spa.r);
+    spa.lamda     = apparent_sun_longitude(spa.theta, spa.del_psi, spa.del_tau);
+    spa.nu0       = greenwich_mean_sidereal_time (spa.jd, spa.jc);
+    spa.nu        = greenwich_sidereal_time (spa.nu0, spa.del_psi, spa.epsilon);
+
+    spa.alpha = geocentric_right_ascension(spa.lamda, spa.epsilon, spa.beta);
+    spa.delta = geocentric_declination(spa.beta, spa.epsilon, spa.lamda);
+	
+	return spa
+}
+
+function calc(lat,lon,year,month,day,hour,minute,sec){
+    var x= []
+	var spa = {}
+	
+	spa.year = year
+	spa.month = month
+	spa.day = day
+	spa.hour = hour
+	spa.minute = minute
+	spa.sec = sec
+	spa.latitude = lat
+	spa.longitude = lon
+	spa.jd = getJD(year,month,day,hour,minute,sec)
+    spa.jc = getJC(spa.jd);
+
+    spa.jde = spa.jd;
+    spa.jce = spa.jc;
+    spa.jme = getJME(spa.jce);
+
+    spa.l = earth_heliocentric_longitude(spa.jme);
+    spa.b = earth_heliocentric_latitude(spa.jme);
+    spa.r = earth_radius_vector(spa.jme);
+
+    spa.theta = geocentric_longitude(spa.l);
+    spa.beta  = geocentric_latitude(spa.b);
+
+    x[0] = spa.x0 = mean_elongation_moon_sun(spa.jce);
+    x[1] = spa.x1 = mean_anomaly_sun(spa.jce);
+    x[2] = spa.x2 = mean_anomaly_moon(spa.jce);
+    x[3] = spa.x3 = argument_latitude_moon(spa.jce);
+    x[4] = spa.x4 = ascending_longitude_moon(spa.jce);
+
+    spa.del_psi = nutation_longitude_and_obliquity(spa.jce,x).lon
+	spa.del_epsilon = nutation_longitude_and_obliquity(spa.jce,x).obl
+
+    spa.epsilon0 = ecliptic_mean_obliquity(spa.jme);
+    spa.epsilon  = ecliptic_true_obliquity(spa.del_epsilon, spa.epsilon0);
+
+    spa.del_tau   = aberration_correction(spa.r);
+    spa.lamda     = apparent_sun_longitude(spa.theta, spa.del_psi, spa.del_tau);
+    spa.nu0       = greenwich_mean_sidereal_time (spa.jd, spa.jc);
+    spa.nu        = greenwich_sidereal_time (spa.nu0, spa.del_psi, spa.epsilon);
+
+    spa.alpha = geocentric_right_ascension(spa.lamda, spa.epsilon, spa.beta);
+    spa.delta = geocentric_declination(spa.beta, spa.epsilon, spa.lamda);
+	
+	spa.H = observer_hour_angle(spa.nu0, spa.longitude, spa.alpha)
+	spa.xi = sun_equatorial_horizontal_parallax(spa.r)
+	spa.delta_alpha = right_ascension_parallax_and_topocentric_dec(spa.latitude,spa.xi,spa.H,spa.delta).delta_alpha
+	spa.delta_a = right_ascension_parallax_and_topocentric_dec(spa.latitude,spa.xi,spa.H,spa.delta).delta_prime
+	spa.h_prime = topocentric_local_hour_angle(spa.H,spa.delta_alpha)
+	
+	spa.el = topocentric_elevation_angle(spa.latitude, spa.delta_a, spa.h_prime)
+	spa.az = topocentric_azimuth_angle(spa.h_prime,spa.latitude,spa.delta_a)
+	
+	spa.m = sun_mean_longitude(spa.jme)
+	spa.eqtime = eot(spa.m,spa.alpha,spa.del_psi,spa.epsilon)
+	
+	return spa
+}
+
+function calculate_eot_and_sun_rise_transit_set(spa){
+    var sun_rts;
+    var nu, m, h0, n;
+    var alpha = [], delta = [];
+    var m_rts = [], nu_rts = [], h_rts= [];
+    var alpha_prime = [], delta_prime =[], h_prime= [];
+    var h0_prime = -1*(0.2667);
+    var i;
+
+	sun_rts  = spa;
+    m        = sun_mean_longitude(spa.jme);
+    spa.eot = eot(m, spa.alpha, spa.del_psi, spa.epsilon);
+
+    sun_rts = {...sun_rts,...calcWithJD(spa.jd)};
+    nu = sun_rts.nu;
+
+    sun_rts.delta_t = 0;
+    sun_rts.jd = sun_rts.jd - 1;
+    for (var i = 0; i < 3; i++) {
+        sun_rts = {...sun_rts,...calcWithJD(sun_rts.jd)};
+        alpha[i] = sun_rts.alpha;
+        delta[i] = sun_rts.delta;
+        sun_rts.jd = sun_rts.jd + 1;
+    }
+    m_rts[0] = approx_sun_transit_time(alpha[0], spa.longitude, nu);
+    h0 = sun_hour_angle_at_rise_set(spa.latitude, delta[0], h0_prime);
+
+    if (h0 >= 0) {
+
+        m_rts = approx_sun_rise_and_set(m_rts[0],h0);
+		
+        for (i = 0; i < 3; i++) {
+
+            nu_rts[i]      = nu + 360.985647*m_rts[i];
+			
+            n              = m_rts[i];
+            alpha_prime[i] = rts_alpha_delta_prime(alpha, n);
+            delta_prime[i] = rts_alpha_delta_prime(delta, n);
+
+            h_prime[i]     = limit_degrees180pm(nu_rts[i] + spa.longitude - alpha_prime[i]);
+
+            h_rts[i]       = rts_sun_altitude(spa.latitude, delta_prime[i], h_prime[i]);
+        }
+
+        spa.srha = h_prime[1];
+        spa.ssha = h_prime[2];
+        spa.sta  = h_rts[0];
+
+        spa.suntransit = dayfrac_to_local_hr(m_rts[0] - h_prime[0] / 360.0,
+                                              0);
+
+        spa.sunrise = dayfrac_to_local_hr(sun_rise_and_set(m_rts, h_rts, delta_prime,
+                          spa.latitude, h_prime, h0_prime, 1), 0);
+        spa.sunset  = dayfrac_to_local_hr(sun_rise_and_set(m_rts, h_rts, delta_prime,
+                          spa.latitude, h_prime, h0_prime, 2),  0);
+
+    } else spa.srha= spa.ssha= spa.sta= spa.suntransit= spa.sunrise= spa.sunset= -99999;
+		return {sunrise:spa.sunrise,sunset:spa.sunset,transit:spa.suntransit}
+}
+
+export function result(lat,lon,year,month,day,hour,minute,sec){
+	var results = calc(lat,lon,year,month,day,hour,minute,sec)
+	var daylight = calculate_eot_and_sun_rise_transit_set(calc(lat,lon,year,month,day,0,0,0))
+	return {lat:results.latitude,lon:results.longitude,el: results.el,az:results.az,dec:results.delta,eot:results.eqtime,...daylight}
+}
 
 
 var L_TERMS=[

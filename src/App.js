@@ -1,18 +1,48 @@
-import logo from './logo.svg'
+import {Route,BrowserRouter as Router,Routes,NavLink as Link} from 'react-router-dom'
 import './App.css'
-import { Provider } from 'react-redux';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import {WbTwilight, SolarPower } from '@mui/icons-material';
+import logo from './vercel.svg'
+import Positioner from './Positioner'
 import Aligner from './Aligner'
-import store from './state/store'
 
 function App() {
+	const darkTheme = createTheme({
+		  palette: {
+			mode: 'dark',
+		  },
+		});
+	
+	
   return (
-    <div className="container">
-	  <div className="main">
-		<Provider store={store}>
-			<Aligner/>
-		</Provider>
-	  </div>
-    </div>
+	<Router>
+		<div className="nav">
+			<div className="box">
+				<Link className="tab" to="/" exact>
+					<div className="icon">
+					<WbTwilight/>
+					</div>
+					<p>Solar orbit</p>
+				</Link>
+				<Link className="tab" to="/Solar-panel-aligner">
+					<div className="icon">
+						<SolarPower/>
+					</div>
+					<p>Solar panel</p>
+				</Link>
+			</div>
+		</div>
+		<div className="container">
+			<ThemeProvider theme={darkTheme}>
+			<CssBaseline />
+			<Routes>
+				<Route path="/Solar-panel-aligner" element={<Aligner/>}/>
+				<Route path="/" element={<Positioner/>}/>
+			</Routes>
+			</ThemeProvider>
+		</div>
+	</Router>
   );
 }
 
